@@ -1,5 +1,6 @@
 import sqlite3
 
+
 def test_sqlite():
     con = sqlite3.connect("test.db")
     cur = con.cursor()

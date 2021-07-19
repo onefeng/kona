@@ -2,6 +2,11 @@ import itchat
 from itchat.content import *
 import xml.etree.ElementTree as ElementTree
 import re
+import datetime
+import sqlite3
+
+con = sqlite3.connect("test.db")
+cur = con.cursor()
 
 
 def parse_data(text):
@@ -15,12 +20,16 @@ def parse_data(text):
     m = rgx.search(text)
     data = m.group(1)
     # 提取字段
-    item['deal_time'] = re.search(r'交易时间：(.*?)\n', data).group(1) #交易时间
+    deal_time = re.search(r'交易时间：(.*?)\n', data).group(1)  # 交易时间
     item['deal_type'] = re.search(r'交易类型：(.*?)\n', data).group(1)  # 交易类型
-    item['deal_money'] = re.search(r'交易金额：(.*?)\n', data).group(1)  # 交易金额
-    return m.group(1)
+    deal_money = re.search(r'交易金额：(.*?)\n', data).group(1)  # 交易金额
+    now_time = datetime.datetime.now().year
+    item['deal_time'] = str(now_time) + '年' + deal_time
+    item['deal_money'] = float(re.search(r'人民币(.*?)元', deal_money).group(1))
+    return item
 
-s="""
+
+s = """
 '尊敬的用户：
 	您尾号4543的中信储蓄卡
 
@@ -32,6 +41,8 @@ s="""
 
 ★来中信直播间，看精彩直播，还有福利大转盘，等您抽取好礼>>
 '"""
+
+
 def send_message(content):
     """发送消息"""
     pass
