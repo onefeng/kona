@@ -1,0 +1,9 @@
+*.py[cod]
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+*.log
+*.lock
+*.db
+/venv
