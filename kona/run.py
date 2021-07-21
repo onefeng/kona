@@ -5,8 +5,8 @@ import re
 import datetime
 import sqlite3
 
-con = sqlite3.connect("test.db")
-cur = con.cursor()
+db = sqlite3.connect("release.db")
+cur = db.cursor()
 
 
 def parse_data(text):
@@ -26,7 +26,7 @@ def parse_data(text):
     now_time = datetime.datetime.now().year
     item['deal_time'] = str(now_time) + '年' + deal_time
     item['deal_money'] = float(re.search(r'人民币(.*?)元', deal_money).group(1))
-    return item
+    return item, data
 
 
 s = """
@@ -50,7 +50,22 @@ def send_message(content):
 
 def store_data(data):
     """存入数据"""
-
+    flag = False
+    try:
+        cursor = db.cursor()
+        keys = ','.join(data.keys())
+        values = ','.join(['%s'] * len(data))
+        sql = 'insert into {table}({keys}) values ({values})'.format(table='zx_bank_account', keys=keys, values=values)
+        # print(sql)
+        cursor.execute(sql, tuple(data.values()))
+        db.commit()
+        cursor.close()
+        db.close()
+        flag = True
+    except Exception as e:
+        db.rollback()
+    finally:
+        return flag
     pass
 
 
@@ -59,9 +74,11 @@ def text_reply(msg):
     """处理消息"""
     # 监听指定微信公众号推送的文章信息
     if itchat.search_mps(name='中信银行')[0]['NickName'] == "中信银行":
-        item = parse_data(msg['Content'])
+        item, data = parse_data(msg['Content'])
         # 存入数据库
-        s = 1
+        store_data(item)
+        # 发送消息
+        send_message(data)
 
 
 if __name__ == '__main__':
