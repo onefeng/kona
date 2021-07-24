@@ -5,8 +5,10 @@ import re
 import datetime
 import sqlite3
 
-db = sqlite3.connect("release.db")
-cur = db.cursor()
+from kona.config.settings import SQLITE_URL, key_word, send_id
+from kona.data_source.sqlite_client import SqliteClient
+
+db = SqliteClient(SQLITE_URL)
 
 
 def parse_data(text):
@@ -29,44 +31,9 @@ def parse_data(text):
     return item, data
 
 
-s = """
-'尊敬的用户：
-	您尾号4543的中信储蓄卡
-
-交易时间：7月17日 20:23
-交易类型：跨行转入存入-郭松
-交易金额：人民币 10.00 元
-卡内余额：人民币 3,068.23 元
-	
-
-★来中信直播间，看精彩直播，还有福利大转盘，等您抽取好礼>>
-'"""
-
-
 def send_message(content):
     """发送消息"""
-    pass
-
-
-def store_data(data):
-    """存入数据"""
-    flag = False
-    try:
-        cursor = db.cursor()
-        keys = ','.join(data.keys())
-        values = ','.join(['%s'] * len(data))
-        sql = 'insert into {table}({keys}) values ({values})'.format(table='zx_bank_account', keys=keys, values=values)
-        # print(sql)
-        cursor.execute(sql, tuple(data.values()))
-        db.commit()
-        cursor.close()
-        db.close()
-        flag = True
-    except Exception as e:
-        db.rollback()
-    finally:
-        return flag
-    pass
+    itchat.send(content, send_id)
 
 
 @itchat.msg_register([TEXT, MAP, CARD, NOTE, SHARING], isMpChat=True)
@@ -76,9 +43,17 @@ def text_reply(msg):
     if itchat.search_mps(name='中信银行')[0]['NickName'] == "中信银行":
         item, data = parse_data(msg['Content'])
         # 存入数据库
-        store_data(item)
+        db.insert('zx_bank_account', item)
         # 发送消息
         send_message(data)
+
+
+@itchat.msg_register([TEXT])
+def message_reply(msg):
+    """回复"""
+    text = msg['Text']
+    if text == key_word:
+        itchat.send('hhh', 'gs199534')
 
 
 if __name__ == '__main__':

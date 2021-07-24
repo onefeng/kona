@@ -6,8 +6,7 @@ from DBUtils.PersistentDB import PersistentDB
 
 
 class SqliteClient(object):
-    def __init__(self, conf):
-        db_path = conf.SQLITE_URL
+    def __init__(self, db_path):
         self._pool = PersistentDB(sqlite3, maxusage=None, threadlocal=None, closeable=False, database=db_path)
 
     def get_conn(self):
@@ -43,13 +42,32 @@ class SqliteClient(object):
         finally:
             return flag
 
+    def insert(self, table, datas={}):
+        flag = False
+        try:
+            db = self.get_conn()
+            cursor = db.cursor()
+            keys = ','.join(datas.keys())
+            values = ','.join(['%s'] * len(datas))
+            sql = 'insert into {table}({keys}) values ({values})'.format(table=table, keys=keys, values=values)
+            # print(sql)
+            cursor.execute(sql, tuple(datas.values()))
+            db.commit()
+            cursor.close()
+            db.close()
+            flag = True
+        except Exception as e:
+            db.rollback()
+            logging.exception(e)
+        finally:
+            return flag
+
 
 class SqliteFrame(object):
     """pandas handler sqlite database"""
 
-    def __init__(self, conf):
-        db = conf.SQLITE_URL
-        self.con = sqlite3.connect(db)
+    def __init__(self, path):
+        self.con = sqlite3.connect(path)
 
     def get_conn(self):
         return self.con
