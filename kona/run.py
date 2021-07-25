@@ -24,9 +24,24 @@ def parse_data(text):
     rgx = re.compile(r"\<des\>\<\!\[CDATA\[(.*?)\]\]\>", re.S)
     m = rgx.search(text)
     data = m.group(1)
+    # 收入关键词
+    income_words = ['转入','存入']
+    # 支出关键词
+    expand_words = ['转出','收费']
     # 提取字段
     deal_time = re.search(r'交易时间：(.*?)\n', data).group(1)  # 交易时间
+
+    item['abstract_txt'] = re.search(r'交易类型：(.*?)\n', data).group(1)#摘要
     item['deal_type'] = re.search(r'交易类型：(.*?)\n', data).group(1)  # 交易类型
+    is_income=any(e in item['abstract'] for e in income_words)
+    is_expand = any(e in item['abstract'] for e in expand_words)
+    item['deal_type'] = '未知'
+    if is_income:
+        item['deal_type']='收入'
+    if is_expand:
+        item['deal_type'] = '支出'
+
+
     deal_money = re.search(r'交易金额：(.*?)\n', data).group(1)  # 交易金额
     now_time = datetime.datetime.now().year
     item['deal_time'] = str(now_time) + '年' + deal_time
