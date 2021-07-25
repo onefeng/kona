@@ -1,3 +1,4 @@
+import time
 import itchat
 from itchat.content import *
 import xml.etree.ElementTree as ElementTree
@@ -5,7 +6,9 @@ import re
 import datetime
 import sqlite3
 
-from kona.config.settings import SQLITE_URL, key_word, send_id
+from pandas.io import sql
+
+from kona.config.settings import SQLITE_URL, key_word, wechat_name, FILE_PATH
 from kona.data_source.sqlite_client import SqliteClient
 
 db = SqliteClient(SQLITE_URL)
@@ -33,14 +36,26 @@ def parse_data(text):
 
 def send_message(content):
     """发送消息"""
-    itchat.send(content, send_id)
+    name = itchat.search_friends(name=wechat_name)
+    user_name = name[0]["UserName"]
+    itchat.send(content, user_name)
+
+
+def to_file():
+    con = db.get_conn()
+    model = sql.read_sql('select * from zx_bank_account', con)
+    now_time = str(int(time.time()))
+    file_path = FILE_PATH + 'zx_bank_account{}.xlsx'.format(now_time)
+    model.to_excel(file_path, engine='openpyxl', encoding='utf8')
+    return file_path
 
 
 @itchat.msg_register([TEXT, MAP, CARD, NOTE, SHARING], isMpChat=True)
 def text_reply(msg):
     """处理消息"""
     # 监听指定微信公众号推送的文章信息
-    if itchat.search_mps(name='中信银行')[0]['NickName'] == "中信银行":
+    nick_name = msg['User']['NickName']  # 获取微信公众号名
+    if nick_name == "中信银行":
         item, data = parse_data(msg['Content'])
         # 存入数据库
         db.insert('zx_bank_account', item)
@@ -52,11 +67,13 @@ def text_reply(msg):
 def message_reply(msg):
     """回复"""
     text = msg['Text']
-    if text == key_word:
-        itchat.send('hhh', 'gs199534')
+    remark_name = msg['User']['RemarkName']
+    to_user_name = msg['ToUserName']
+    if text == key_word and remark_name == wechat_name:
+        file_path = to_file()
+        itchat.send(file_path, to_user_name)
 
 
 if __name__ == '__main__':
     itchat.auto_login(hotReload=True)
-    # 绑定消息响应事件后，让itchat运行起来，监听消息
     itchat.run()

@@ -1,6 +1,6 @@
 import sqlite3
 
-db = sqlite3.connect("../release.db")
+db = sqlite3.connect("release.db")
 cur = db.cursor()
 sql = """
             CREATE TABLE IF NOT EXISTS zx_bank_account(id INTEGER PRIMARY KEY autoincrement

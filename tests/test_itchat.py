@@ -11,3 +11,11 @@ def test_itchat():
     mpsList = itchat.get_mps(update=True)[1:]
 
     assert True
+
+
+def test_send():
+    s ='🐰 '
+    itchat.auto_login(hotReload=True)
+    name = itchat.search_friends(name=s)
+    user_name = name[0]["UserName"]
+    assert True
