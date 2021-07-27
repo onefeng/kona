@@ -25,27 +25,28 @@ def parse_data(text):
     m = rgx.search(text)
     data = m.group(1)
     # 收入关键词
-    income_words = ['转入','存入']
+    income_words = ['转入', '存入']
     # 支出关键词
-    expand_words = ['转出','收费']
+    expand_words = ['转出', '收费']
     # 提取字段
     deal_time = re.search(r'交易时间：(.*?)\n', data).group(1)  # 交易时间
 
-    item['abstract_txt'] = re.search(r'交易类型：(.*?)\n', data).group(1)#摘要
+    item['abstract_txt'] = re.search(r'交易类型：(.*?)\n', data).group(1)  # 摘要
     item['deal_type'] = re.search(r'交易类型：(.*?)\n', data).group(1)  # 交易类型
-    is_income=any(e in item['abstract'] for e in income_words)
-    is_expand = any(e in item['abstract'] for e in expand_words)
+    is_income = any(e in item['abstract_txt'] for e in income_words)
+    is_expand = any(e in item['abstract_txt'] for e in expand_words)
     item['deal_type'] = '未知'
+    a = 1
     if is_income:
-        item['deal_type']='收入'
+        item['deal_type'] = '收入'
     if is_expand:
         item['deal_type'] = '支出'
-
+        a = -1
 
     deal_money = re.search(r'交易金额：(.*?)\n', data).group(1)  # 交易金额
     now_time = datetime.datetime.now().year
     item['deal_time'] = str(now_time) + '年' + deal_time
-    item['deal_money'] = float(re.search(r'人民币(.*?)元', deal_money).group(1))
+    item['deal_money'] = a * float(re.search(r'人民币(.*?)元', deal_money).group(1))
     return item, data
 
 
@@ -86,7 +87,7 @@ def message_reply(msg):
     to_user_name = msg['ToUserName']
     if text == key_word and remark_name == wechat_name:
         file_path = to_file()
-        itchat.send(file_path, to_user_name)
+        itchat.send_file(file_path, to_user_name)
 
 
 if __name__ == '__main__':

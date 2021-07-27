@@ -5,5 +5,4 @@
 *.egg-info
 *.log
 *.lock
-*.db
 /venv

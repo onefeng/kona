@@ -14,8 +14,14 @@ def test_itchat():
 
 
 def test_send():
-    s ='🐰 '
+    s = '🐰 '
     itchat.auto_login(hotReload=True)
     name = itchat.search_friends(name=s)
     user_name = name[0]["UserName"]
     assert True
+
+
+def test_send_file():
+    path = "E:\pro_code\kona\kona\scrips\zx_bank_account1627309223.xlsx"
+    itchat.auto_login(hotReload=True)
+    itchat.send_file(path, 'filehelper')
