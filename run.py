@@ -91,5 +91,5 @@ def message_reply(msg):
 
 
 if __name__ == '__main__':
-    itchat.auto_login(hotReload=True)
+    itchat.auto_login(enableCmdQR=2,hotReload=True)
     itchat.run()
