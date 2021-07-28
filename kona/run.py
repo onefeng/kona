@@ -84,7 +84,7 @@ def message_reply(msg):
     """回复"""
     text = msg['Text']
     remark_name = msg['User']['RemarkName']
-    to_user_name = msg['ToUserName']
+    to_user_name = msg['FromUserName']
     if text == key_word and remark_name == wechat_name:
         file_path = to_file()
         itchat.send_file(file_path, to_user_name)
